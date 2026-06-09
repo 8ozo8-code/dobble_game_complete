@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 [무한 서바이벌] 도블 타임어택</title>
+    <style>
+        body { font-family: 'Pretendard', sans-serif; text-align: center; background-color: #f8f9fa; margin: 0; padding: 20px; transition: 0.3s; }
+        .header { max-width: 600px; margin: 0 auto; }
+        .stats { font-size: 1.2rem; font-weight: bold; margin: 15px 0; padding: 10px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
+        
+        /* ✅ 추가: 일시정지 버튼 스타일 */
+        .btn-pause { font-size: 0.9rem; padding: 6px 12px; background-color: #7f8c8d; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        .btn-pause:hover { background-color: #616c6d; transform: scale(1.05); }
+
+        .card-container { display: flex; justify-content: center; gap: 30px; margin: 20px 0; flex-wrap: wrap; }
+        .card { 
+            width: 280px; height: 280px; 
+            background-color: #F0F8FF; border: 5px solid #4682B4; 
+            border-radius: 50%; position: relative; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: 0.3s;
+        }
+        .item { position: absolute; font-weight: bold; color: black; text-shadow: 1px 1px 2px rgba(255,255,255,0.8); white-space: nowrap; }
+        
+        body.mobile-mode { padding: 10px; }
+        body.mobile-mode .card-container { gap: 10px; flex-wrap: nowrap; } 
+        body.mobile-mode .card { 
+            width: 45vw; height: 45vw; 
+            max-width: 160px; max-height: 160px; 
+            border-width: 3px; 
+        }
+        body.mobile-mode #answer-input { display: none; } 
+
+        .progress-bar { width: 100%; max-width: 600px; height: 20px; background-color: #ddd; border-radius: 10px; margin: 0 auto 20px; overflow: hidden; }
+        .progress-fill { height: 100%; background-color: #ff4757; width: 100%; transition: width 0.1s linear; }
+        
+        input[type="text"] { font-size: 1.5rem; padding: 10px; width: 250px; text-align: center; border: 2px solid #ccc; border-radius: 8px; outline: none; }
+        input[type="text"]:focus { border-color: #4682B4; }
+        
+        #message { font-size: 1.2rem; font-weight: bold; height: 30px; margin-top: 10px; color: #ff4757; }
+        
+        #mobile-input-display { display: none; font-size: 1.5rem; font-weight: bold; padding: 10px; width: 200px; margin: 0 auto 10px; border: 2px solid #4682B4; border-radius: 8px; background: white; min-height: 35px; color: #333; }
+        
+        #virtual-keypad { display: none; max-width: 300px; margin: 0 auto; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+        #virtual-keypad button { padding: 15px; font-size: 1.5rem; background-color: white; color: #333; border: 2px solid #ccc; border-radius: 10px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #virtual-keypad button:active { background-color: #e0e0e0; transform: scale(0.95); }
+        .key-action { background-color: #4682B4 !important; color: white !important; border-color: #315f86 !important; }
+        .key-del { background-color: #ff4757 !important; color: white !important; border-color: #e84118 !important; }
+
+        #word-pad { display: none; max-width: 350px; margin: 0 auto; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        #word-pad button { padding: 10px 15px; font-size: 1rem; background-color: white; border: 2px solid #4682B4; border-radius: 20px; color: #4682B4; margin: 0; }
+        #word-pad button:active { background-color: #4682B4; color: white; transform: scale(0.95); }
+
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 10; flex-direction: column; justify-content: center; align-items: center; }
+        .btn-group { display: flex; gap: 15px; margin-top: 20px; flex-wrap: wrap; justify-content: center; }
+        button { font-size: 1.1rem; padding: 12px 25px; background-color: #4682B4; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; font-weight: bold; }
+        button:hover { background-color: #315f86; transform: scale(1.05); }
+        .btn-arcade { background-color: #ff9f43; }
+        .btn-arcade:hover { background-color: #e67e22; }
+
+        .device-select { margin-bottom: 25px; font-size: 1.1rem; font-weight: bold; background: #eef2f5; padding: 15px; border-radius: 10px; }
+        .device-select label { cursor: pointer; margin: 0 10px; }
+        .device-select input[type="radio"] { transform: scale(1.2); margin-right: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="main-title">🚀 [무한 서바이벌] 도블 타임어택</h1>
+        <div class="stats">
+            <div>🎯 점수: <span id="score">0</span>점 | ❤️ <span id="hp">5</span> | 🔥 콤보: <span id="combo">0</span></div>
+            <button id="pause-btn" class="btn-pause" onclick="togglePause()" style="display: none;">⏸️ 일시정지</button>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="timer-bar"></div></div>
+    </div>
+
+    <div class="card-container">
+        <div class="card" id="card1"></div>
+        <div class="card" id="card2"></div>
+    </div>
+
+    <input type="text" id="answer-input" placeholder="정답 입력 후 Enter" autocomplete="off" disabled>
+    
+    <div id="mobile-input-display"></div>
+    
+    <div id="virtual-keypad">
+        <button onclick="handleKeypad('1')">1</button>
+        <button onclick="handleKeypad('2')">2</button>
+        <button onclick="handleKeypad('3')">3</button>
+        <button onclick="handleKeypad('4')">4</button>
+        <button onclick="handleKeypad('5')">5</button>
+        <button onclick="handleKeypad('6')">6</button>
+        <button onclick="handleKeypad('7')">7</button>
+        <button onclick="handleKeypad('8')">8</button>
+        <button onclick="handleKeypad('9')">9</button>
+        <button class="key-del" onclick="handleKeypad('del')">지움</button>
+        <button onclick="handleKeypad('0')">0</button>
+        <button class="key-action" onclick="handleKeypad('enter')">입력</button>
+    </div>
+
+    <div id="word-pad"></div>
+    <div id="message"></div>
+
+    <div class="overlay" id="overlay" style="display: flex;">
+        <h1 id="overlay-title">🎮 도블 타임어택</h1>
+        <p id="overlay-desc">플레이 환경과 게임 모드를 선택하세요!</p>
+        
+        <div class="device-select" id="device-box">
+            <label><input type="radio" name="deviceType" value="pc" checked> 💻 PC (키보드)</label>
+            <label><input type="radio" name="deviceType" value="mobile"> 📱 모바일 (패드)</label>
+        </div>
+
+        <div class="btn-group" id="mode-buttons">
+            <button onclick="selectMode('classic')">🔢 클래식 (숫자)</button>
+            <button class="btn-arcade" onclick="selectMode('text')">🍎 아케이드 (단어)</button>
+            <button class="btn-arcade" onclick="selectMode('math')">➕ 아케이드 (연산)</button>
+        </div>
+
+        <div class="btn-group" id="difficulty-buttons" style="display: none;">
+            <button style="background-color: #2ed573;" onclick="startGame('easy')">🌱 쉬움</button>
+            <button style="background-color: #f1c40f; color: black;" onclick="startGame('normal')">⭐ 보통</button>
+            <button style="background-color: #ff4757;" onclick="startGame('hard')">🔥 어려움</button>
+            <button style="background-color: #7f8c8d;" onclick="resetSelection()">⬅️ 뒤로</button>
+        </div>
+
+        <div class="btn-group" id="gameover-buttons" style="display: none;">
+            <button style="background-color: #ff9f43;" onclick="restartGame()">🔄 바로 다시하기</button>
+            <button style="background-color: #7f8c8d;" onclick="location.reload()">🏠 처음으로</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="pause-overlay" style="display: none; z-index: 20;">
+        <h1>⏸️ 일시정지</h1>
+        <div class="btn-group">
+            <button onclick="resumeGame()">▶️ 계속하기</button>
+            <button class="btn-arcade" onclick="restartGame()">🔄 다시하기</button>
+            <button style="background-color: #7f8c8d;" onclick="quitGame()">⏹️ 그만두기</button>
+        </div>
+    </div>
+
+    <script>
+        const wordDictionary = [
+            "사과", "바나나", "포도", "딸기", "수박", "오렌지", "레몬", "복숭아", "파인애플", "키위", 
+            "강아지", "고양이", "토끼", "사자", "호랑이", "곰", "여우", "늑대", "코끼리", "기린", 
+            "원숭이", "돼지", "소", "말", "양", "쥐", "새", "오리", "닭", "펭귄", 
+            "피자", "버거", "치킨", "콜라", "아이스크림", "케이크", "과자", "초콜릿", "사탕", "빵", 
+            "우유", "치즈", "커피", "차", "주스", "물", "비행기", "자동차", "기차", "배", 
+            "자전거", "오토바이", "버스", "택시", "경찰차", "소방차", "구급차", "로켓", "우주선", "별"
+        ];
+
+        function generateDobbleDeck(n = 7) {
+            let cards = [];
+            let firstCard = [1];
+            for (let i = 0; i < n; i++) firstCard.push(i + 2);
+            cards.push(firstCard);
+
+            for (let i = 0; i < n; i++) {
+                let card = [1];
+                for (let j = 0; j < n; j++) card.push(n + 2 + i * n + j);
+                cards.push(card);
+            }
+
+            for (let i = 0; i < n; i++) {
+                for (let j = 0; j < n; j++) {
+                    let card = [i + 2];
+                    for (let k = 0; k < n; k++) {
+                        let val = n + 2 + k * n + ((i * k + j) % n);
+                        card.push(val);
+                    }
+                    cards.push(card);
+                }
+            }
+            return cards;
+        }
+
+        function getMathExpression(target) {
+            const ops = ['+', '-', '*'];
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            
+            if (op === '+') {
+                let a = Math.floor(Math.random() * target);
+                let b = target - a;
+                return `${a}+${b}`;
+            } else if (op === '-') {
+                let a = target + Math.floor(Math.random() * 20) + 1;
+                let b = a - target;
+                return `${a}-${b}`;
+            } else if (op === '*') {
+                let factors = [];
+                for(let i=1; i<=target; i++) {
+                    if(target % i === 0) factors.push(i);
+                }
+                let a = factors[Math.floor(Math.random() * factors.length)];
+                let b = target / a;
+                return `${a}×${b}`;
+            }
+        }
+
+        let rawDeck = generateDobbleDeck(7);
+        let deck = [];
+        let numberMapping = {};
+        let wordMapping = {};
+        
+        let currentMode = '';
+        let currentDifficulty = 'normal';
+        let isMobileMode = false; 
+        let isInputLocked = false; 
+        let score = 0, hp = 5, combo = 0;
+        let isPaused = false;
+        let card1 = [], card2 = [];
+        let expectedAnswerStr = ""; 
+        let mobileTypedValue = ""; 
+        
+        let timeLimit = 5.0;
+        let timeLeft = 5.0;
+        let timerInterval;
+
+        const inputEl = document.getElementById('answer-input');
+        const msgEl = document.getElementById('message');
+        const mobileDisplayEl = document.getElementById('mobile-input-display');
+
+        function initMappings() {
+            let uniqueSymbols = new Set();
+            rawDeck.forEach(card => card.forEach(num => uniqueSymbols.add(num)));
+            let uniqueArr = Array.from(uniqueSymbols);
+
+            let displayNumbers = [];
+            while (displayNumbers.length < uniqueArr.length) {
+                let r = Math.floor(Math.random() * 99) + 1;
+                if (!displayNumbers.includes(r)) displayNumbers.push(r);
+            }
+            
+            let shuffledWords = [...wordDictionary].sort(() => Math.random() - 0.5);
+
+            uniqueArr.forEach((sym, i) => {
+                numberMapping[sym] = displayNumbers[i];
+                wordMapping[sym] = shuffledWords[i];
+            });
+        }
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('mode-buttons').style.display = 'none';
+            document.getElementById('device-box').style.display = 'none';
+            document.getElementById('difficulty-buttons').style.display = 'flex';
+            document.getElementById('overlay-desc').innerHTML = "🔥 <b>난이도</b>를 선택하세요!";
+        }
+
+        function resetSelection() {
+            document.getElementById('mode-buttons').style.display = 'flex';
+            document.getElementById('device-box').style.display = 'block';
+            document.getElementById('difficulty-buttons').style.display = 'none';
+            document.getElementById('gameover-buttons').style.display = 'none'; 
+            document.getElementById('overlay-desc').innerText = "플레이 환경과 게임 모드를 선택하세요!";
+        }
+
+        function startGame(difficulty) {
+            currentDifficulty = difficulty;
+            const selectedDevice = document.querySelector('input[name="deviceType"]:checked').value;
+            isMobileMode = (selectedDevice === 'mobile');
+
+            document.getElementById('overlay').style.display = 'none';
+            isInputLocked = false;
+            
+            // ✅ 변경: 게임 시작 시 일시정지 버튼 노출
+            document.getElementById('pause-btn').style.display = 'inline-block';
+
+            if (isMobileMode) {
+                document.body.classList.add('mobile-mode');
+                document.getElementById('answer-input').style.display = 'none';
+                
+                if (currentMode === 'classic' || currentMode === 'math') {
+                    document.getElementById('virtual-keypad').style.display = 'grid';
+                    mobileDisplayEl.style.display = 'block';
+                    document.getElementById('word-pad').style.display = 'none';
+                } else if (currentMode === 'text') {
+                    document.getElementById('virtual-keypad').style.display = 'none';
+                    mobileDisplayEl.style.display = 'none';
+                    document.getElementById('word-pad').style.display = 'flex';
+                }
+            } else {
+                document.body.classList.remove('mobile-mode');
+                document.getElementById('answer-input').style.display = 'inline-block';
+                document.getElementById('virtual-keypad').style.display = 'none';
+                mobileDisplayEl.style.display = 'none';
+                document.getElementById('word-pad').style.display = 'none';
+                inputEl.disabled = false;
+                inputEl.focus();
+            }
+            
+            hp = (difficulty === 'hard') ? 3 : 5; 
+
+            let diffText = difficulty === 'easy' ? "🌱쉬움" : (difficulty === 'normal' ? "⭐보통" : "🔥어려움");
+
+            if (currentMode === 'classic') {
+                timeLimit = difficulty === 'easy' ? 7.0 : (difficulty === 'normal' ? 5.0 : 3.0);
+                document.getElementById('main-title').innerText = `🔢 [클래식-${diffText}] 타임어택`;
+                inputEl.placeholder = "공통 숫자 입력 후 Enter";
+            } else if (currentMode === 'text') {
+                timeLimit = difficulty === 'easy' ? 7.0 : (difficulty === 'normal' ? 5.0 : 3.0);
+                document.getElementById('main-title').innerText = `🍎 [단어-${diffText}] 타임어택`;
+                inputEl.placeholder = "공통 단어 입력 후 Enter";
+            } else if (currentMode === 'math') {
+                timeLimit = difficulty === 'easy' ? 12.0 : (difficulty === 'normal' ? 10.0 : 6.0);
+                document.getElementById('main-title').innerText = `➕ [연산-${diffText}] 타임어택`;
+                inputEl.placeholder = "계산된 공통 숫자 입력 후 Enter";
+            }
+
+            initMappings();
+            deck = [...rawDeck].sort(() => Math.random() - 0.5); 
+            score = 0; combo = 0;
+            updateStats();
+            nextRound();
+        }
+
+        function nextRound() {
+            if (hp <= 0) {
+                gameOver();
+                return;
+            }
+
+            msgEl.innerText = "";
+            timeLeft = timeLimit;
+            
+            if (deck.length < 2) {
+                deck = [...rawDeck].sort(() => Math.random() - 0.5); 
+            }
+        
+            card1 = deck.pop();
+            card2 = deck.pop();
+            
+            let rawAnswer = card1.filter(value => card2.includes(value))[0];
+        
+            if (currentMode === 'classic' || currentMode === 'math') {
+                expectedAnswerStr = numberMapping[rawAnswer].toString();
+            } else if (currentMode === 'text') {
+                expectedAnswerStr = wordMapping[rawAnswer];
+            }
+        
+            renderCard('card1', card1);
+            renderCard('card2', card2);
+            
+            if (isMobileMode && currentMode === 'text') {
+                renderWordPad();
+            }
+        
+            mobileTypedValue = "";
+            mobileDisplayEl.innerText = "";
+
+            isInputLocked = false;
+            
+            if (!isMobileMode) {
+                inputEl.disabled = false;
+                inputEl.value = '';
+                inputEl.focus();
+            }
+            
+            startTimer();
+        }
+
+        function renderCard(elementId, cardData) {
+            const cardEl = document.getElementById(elementId);
+            cardEl.innerHTML = ''; 
+            
+            const positions = [
+                {x: 22, y: 22}, {x: 78, y: 22}, {x: 22, y: 78}, {x: 78, y: 78}, 
+                {x: 50, y: 15}, {x: 50, y: 85}, {x: 15, y: 50}, {x: 85, y: 50}  
+            ];
+            positions.sort(() => Math.random() - 0.5); 
+
+            const scale = isMobileMode ? 0.65 : 1.0;
+
+            cardData.forEach((rawNum, index) => {
+                const span = document.createElement('span');
+                span.className = 'item';
+                
+                let textStr = "";
+                if (currentMode === 'classic') {
+                    textStr = numberMapping[rawNum].toString();
+                } else if (currentMode === 'text') {
+                    textStr = wordMapping[rawNum];
+                } else if (currentMode === 'math') {
+                    textStr = getMathExpression(numberMapping[rawNum]);
+                }
+                
+                span.innerText = textStr;
+                
+                let baseFontSize = 24;
+                let maxOffset = 15;
+                let maxRotate = 40;
+                let sizeRandomness = 6;
+
+                if (currentDifficulty === 'easy') {
+                    sizeRandomness = 0; 
+                    maxRotate = 0;      
+                    maxOffset = 10;
+                } else if (currentDifficulty === 'hard') {
+                    sizeRandomness = 12; 
+                    maxRotate = 90;      
+                    maxOffset = 20;
+                }
+
+                if (currentMode !== 'classic') {
+                    baseFontSize = textStr.length > 3 ? 14 : 18;
+                    if (currentDifficulty !== 'easy') {
+                        maxOffset = currentDifficulty === 'hard' ? 10 : 5;
+                        maxRotate = currentDifficulty === 'hard' ? 60 : 15;
+                    }
+                }
+
+                baseFontSize = Math.max(10, Math.floor(baseFontSize * scale));
+                maxOffset = Math.floor(maxOffset * scale);
+
+                const pos = positions[index];
+                const offsetX = (Math.random() - 0.5) * maxOffset; 
+                const offsetY = (Math.random() - 0.5) * maxOffset;
+                
+                span.style.left = `calc(${pos.x}% + ${offsetX}px)`;
+                span.style.top = `calc(${pos.y}% + ${offsetY}px)`;
+                
+                let randomFontSize = Math.floor(Math.random() * sizeRandomness * scale) + baseFontSize;
+                let randomRotate = Math.floor(Math.random() * maxRotate) - (maxRotate / 2);
+                
+                span.style.fontSize = `${randomFontSize}px`; 
+                span.style.transform = `translate(-50%, -50%) rotate(${randomRotate}deg)`;
+                
+                cardEl.appendChild(span);
+            });
+        }
+
+        function renderWordPad() {
+            const pad = document.getElementById('word-pad');
+            pad.innerHTML = '';
+            
+            let currentSymbols = new Set([...card1, ...card2]);
+            let words = Array.from(currentSymbols).map(sym => wordMapping[sym]);
+            
+            words.sort((a, b) => a.localeCompare(b));
+            
+            words.forEach(word => {
+                let btn = document.createElement('button');
+                btn.innerText = word;
+                btn.onclick = () => submitAnswer(word);
+                pad.appendChild(btn);
+            });
+        }
+
+        function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+
+            const bar = document.getElementById('timer-bar');
+      
+            timerInterval = setInterval(() => {
+                if (isPaused) return; 
+      
+                timeLeft -= 0.1;
+                let percent = Math.max(0, (timeLeft / timeLimit) * 100);
+                bar.style.width = `${percent}%`;
+      
+                if (timeLeft <= 0.05) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    handleWrongAnswer(`⏰ 시간 초과! 정답은 [${expectedAnswerStr}]`);
+                }
+            }, 100);
+        }
+
+        inputEl.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !isInputLocked) {
+                const userVal = inputEl.value.trim();
+                if (!userVal) return;
+                submitAnswer(userVal);
+            }
+        });
+
+        window.handleKeypad = function(val) {
+            if (isInputLocked) return;
+            
+            if (val === 'del') {
+                mobileTypedValue = mobileTypedValue.slice(0, -1);
+            } else if (val === 'enter') {
+                if (mobileTypedValue === "") return;
+                submitAnswer(mobileTypedValue);
+                return;
+            } else {
+                mobileTypedValue += val;
+            }
+            mobileDisplayEl.innerText = mobileTypedValue;
+        };
+
+        function submitAnswer(userVal) {
+            if (isPaused || isInputLocked) return;
+
+            clearInterval(timerInterval);
+            timerInterval = null;
+
+            if (userVal === expectedAnswerStr) {
+                score++;
+                combo++;
+                showMessage(`✅ 정답입니다! (+1점)`, '#2ed573');
+                isInputLocked = true;
+                setTimeout(() => {
+                    isInputLocked = false;
+                    nextRound();
+                }, 500);
+            } else {
+                handleWrongAnswer(`❌ 틀렸습니다! 정답은 [${expectedAnswerStr}]`);
+            }
+        }
+
+        function handleWrongAnswer(msg) {
+            if (isInputLocked) return;
+            isInputLocked = true;
+            clearInterval(timerInterval);
+            
+            if (!isMobileMode) {
+                inputEl.disabled = true;
+            }
+
+            hp--;
+            combo = 0;
+            showMessage(msg, '#ff4757');
+            updateStats();
+
+            if(hp <= 0) {
+                setTimeout(gameOver, 1000);
+            } else {
+                setTimeout(nextRound, 1200);
+            }
+        }
+
+        function showMessage(msg, color) {
+            msgEl.innerText = msg;
+            msgEl.style.color = color;
+        }
+
+        function updateStats() {
+            document.getElementById('score').innerText = score;
+            document.getElementById('hp').innerText = '❤️'.repeat(Math.max(0, hp));
+            document.getElementById('combo').innerText = combo;
+        }
+
+        function togglePause() {
+            if (isPaused) { resumeGame(); } else { pauseGame(); }
+        }
+        
+        function pauseGame() {
+            isPaused = true;
+            clearInterval(timerInterval);
+            document.getElementById('pause-overlay').style.display = 'flex';
+        }
+        
+        function resumeGame() {
+            isPaused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+
+            if (!isMobileMode) {
+                inputEl.disabled = false;
+                inputEl.focus();
+            }
+            startTimer(); 
+        }
+        
+        function quitGame() {
+            location.reload();
+        }
+        
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                togglePause();
+            }
+        });
+
+        function restartGame() {
+            isPaused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+            document.getElementById('overlay').style.display = 'none'; 
+            
+            startGame(currentDifficulty); 
+        }
+            
+        function gameOver() {
+            clearInterval(timerInterval);
+            isInputLocked = true;
+            if (!isMobileMode) inputEl.disabled = true;
+
+            // ✅ 변경: 게임 종료 시 일시정지 버튼 숨김
+            document.getElementById('pause-btn').style.display = 'none';
+
+            const overlay = document.getElementById('overlay');
+            
+            document.getElementById('overlay-title').innerText = "🏁 게임 종료!";
+            document.getElementById('overlay-desc').innerHTML = `💀 하트를 모두 소진했습니다!<br><br>🎯 최종 기록: <b>${score}문제</b> 맞춤!`;
+            
+            document.getElementById('mode-buttons').style.display = 'none';
+            document.getElementById('difficulty-buttons').style.display = 'none';
+            document.getElementById('device-box').style.display = 'none';
+        
+            document.getElementById('gameover-buttons').style.display = 'flex';
+            overlay.style.display = 'flex';
+        }
+        
+        document.addEventListener('click', (e) => { 
+            if (!isMobileMode && !isPaused && !inputEl.disabled && e.target.tagName !== 'BUTTON' && e.target.id !== 'answer-input') {
+                inputEl.focus(); 
+            }
+        });
+    </script>
+</body>
+</html>
