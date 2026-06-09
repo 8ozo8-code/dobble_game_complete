@@ -9,7 +9,6 @@
         .header { max-width: 600px; margin: 0 auto; }
         .stats { font-size: 1.2rem; font-weight: bold; margin: 15px 0; padding: 10px; background: white; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; }
         
-        /* ✅ 추가: 일시정지 버튼 스타일 */
         .btn-pause { font-size: 0.9rem; padding: 6px 12px; background-color: #7f8c8d; color: white; border: none; border-radius: 6px; cursor: pointer; transition: 0.2s; font-weight: bold; }
         .btn-pause:hover { background-color: #616c6d; transform: scale(1.05); }
 
@@ -263,7 +262,6 @@
             document.getElementById('overlay').style.display = 'none';
             isInputLocked = false;
             
-            // ✅ 변경: 게임 시작 시 일시정지 버튼 노출
             document.getElementById('pause-btn').style.display = 'inline-block';
 
             if (isMobileMode) {
@@ -501,6 +499,7 @@
             if (userVal === expectedAnswerStr) {
                 score++;
                 combo++;
+                updateStats(); // ✅ 수정: 정답 판정 시 UI 스탯 갱신 추가!
                 showMessage(`✅ 정답입니다! (+1점)`, '#2ed573');
                 isInputLocked = true;
                 setTimeout(() => {
@@ -588,7 +587,6 @@
             isInputLocked = true;
             if (!isMobileMode) inputEl.disabled = true;
 
-            // ✅ 변경: 게임 종료 시 일시정지 버튼 숨김
             document.getElementById('pause-btn').style.display = 'none';
 
             const overlay = document.getElementById('overlay');
