@@ -255,12 +255,17 @@
         }
 
         function startGame(difficulty) {
+            // ✅ 수정: 처음이든 다시하기든 게임이 새로 시작되면 모든 상태 플래그를 강제로 초기화합니다.
+            isPaused = false;
+            isInputLocked = false;
+            mobileTypedValue = "";
+            document.getElementById('pause-overlay').style.display = 'none';
+
             currentDifficulty = difficulty;
             const selectedDevice = document.querySelector('input[name="deviceType"]:checked').value;
             isMobileMode = (selectedDevice === 'mobile');
 
             document.getElementById('overlay').style.display = 'none';
-            isInputLocked = false;
             
             document.getElementById('pause-btn').style.display = 'inline-block';
 
@@ -499,7 +504,7 @@
             if (userVal === expectedAnswerStr) {
                 score++;
                 combo++;
-                updateStats(); // ✅ 수정: 정답 판정 시 UI 스탯 갱신 추가!
+                updateStats(); 
                 showMessage(`✅ 정답입니다! (+1점)`, '#2ed573');
                 isInputLocked = true;
                 setTimeout(() => {
@@ -568,17 +573,17 @@
             location.reload();
         }
         
+        // ✅ 수정: 메인 오버레이 화면(시작 및 게임오버)이 켜져 있을 때는 Esc 키로 일시정지가 트리거되지 않도록 제한합니다.
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') {
-                togglePause();
+                const mainOverlay = document.getElementById('overlay');
+                if (mainOverlay.style.display === 'none') {
+                    togglePause();
+                }
             }
         });
 
         function restartGame() {
-            isPaused = false;
-            document.getElementById('pause-overlay').style.display = 'none';
-            document.getElementById('overlay').style.display = 'none'; 
-            
             startGame(currentDifficulty); 
         }
             
